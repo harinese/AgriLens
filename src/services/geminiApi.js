@@ -39,7 +39,7 @@ export async function analyzeCropImage(base64Image, mimeType = 'image/jpeg') {
 Be specific with pesticide dosages in ml/litre or grams/litre. If the crop is healthy, still provide care tips and set disease_severity to "none" and urgency_level to "routine".`;
 
   try {
-    const response = await fetch(GEMINI_URL, {
+    let response = await fetch(GEMINI_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -61,6 +61,19 @@ Be specific with pesticide dosages in ml/litre or grams/litre. If the crop is he
         }
       })
     });
+
+    if (response.status === 503) {
+      console.warn('Gemini 503 error, retrying...');
+      await new Promise(r => setTimeout(r, 2000));
+      response = await fetch(GEMINI_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: systemPrompt }, { inline_data: { mime_type: mimeType, data: base64Image } }] }],
+          generationConfig: { temperature: 0.3, maxOutputTokens: 8192, responseMimeType: 'application/json' }
+        })
+      });
+    }
 
     if (!response.ok) {
       throw new Error(`Gemini API error: ${response.status} ${response.statusText}`);
@@ -113,7 +126,7 @@ ${JSON.stringify(weatherData, null, 2)}
 Be specific with water quantities. Consider rainfall — if heavy rain is expected, skip or reduce irrigation.`;
 
   try {
-    const response = await fetch(GEMINI_URL, {
+    let response = await fetch(GEMINI_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -127,6 +140,19 @@ Be specific with water quantities. Consider rainfall — if heavy rain is expect
         }
       })
     });
+
+    if (response.status === 503) {
+      console.warn('Gemini 503 error, retrying...');
+      await new Promise(r => setTimeout(r, 2000));
+      response = await fetch(GEMINI_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: systemPrompt }] }],
+          generationConfig: { temperature: 0.3, maxOutputTokens: 8192, responseMimeType: 'application/json' }
+        })
+      });
+    }
 
     if (!response.ok) {
       throw new Error(`Gemini API error: ${response.status}`);
@@ -172,7 +198,7 @@ export async function generateCropProfile(cropName) {
 }`;
 
   try {
-    const response = await fetch(GEMINI_URL, {
+    let response = await fetch(GEMINI_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -186,6 +212,19 @@ export async function generateCropProfile(cropName) {
         }
       })
     });
+
+    if (response.status === 503) {
+      console.warn('Gemini servers overloaded (503). Retrying in 2 seconds...');
+      await new Promise(r => setTimeout(r, 2000));
+      response = await fetch(GEMINI_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: systemPrompt }] }],
+          generationConfig: { temperature: 0.4, maxOutputTokens: 8192, responseMimeType: 'application/json' }
+        })
+      });
+    }
 
     if (!response.ok) {
       throw new Error(`Gemini API error: ${response.status}`);

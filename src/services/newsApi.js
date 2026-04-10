@@ -2,7 +2,8 @@ const GNEWS_API_KEY = import.meta.env.VITE_GNEWS_API_KEY;
 
 export async function getAgricultureNews() {
   const keywords = 'agriculture OR farming OR pesticide OR crop OR harvest';
-  const url = `https://gnews.io/api/v4/search?q=${encodeURIComponent(keywords)}&lang=en&max=10&apikey=${GNEWS_API_KEY}`;
+  const rawUrl = `https://gnews.io/api/v4/search?q=${encodeURIComponent(keywords)}&lang=en&max=10&apikey=${GNEWS_API_KEY}`;
+  const url = `https://api.allorigins.win/raw?url=${encodeURIComponent(rawUrl)}`;
 
   try {
     const response = await fetch(url);
